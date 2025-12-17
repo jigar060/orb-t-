@@ -110,11 +110,11 @@ for day, rows in data.groupby(data["session_day"]):
         exit_price  = None
         exit_reason = None
         if entry_signal == "BUY":
-            sl_price = entry_price - 150 
-            tp_price = entry_price + 300
+            sl_price = entry_price - 0.9985
+            tp_price = entry_price + 1.003
         elif entry_signal == "SELL":
-          sl_price = entry_price + 150
-          tp_price = entry_price - 300
+          sl_price = entry_price + 1.0015
+          tp_price = entry_price - 0.997
 
 
         for t2, r2 in after.iterrows():
