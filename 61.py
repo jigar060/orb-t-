@@ -6,7 +6,7 @@ data = data.sort_index()
 data["session_day"] = (data.index - pd.Timedelta(hours=4)).date
 
 # Select month
-#data = data.loc["2025-01-01":"2025-02-01"]
+#data = data.loc["2025-01-01":"2025-01-01"]
 
 # Prepare columns
 data["signal"] = "HOLD"
@@ -110,14 +110,29 @@ for day, rows in data.groupby(data["session_day"]):
         exit_price  = None
         exit_reason = None
         if entry_signal == "BUY":
-            sl_price = entry_price - 0.9985
-            tp_price = entry_price + 1.003
+            sl_price = entry_price * 0.9985
+            tp_price = entry_price * 1.003
         elif entry_signal == "SELL":
-          sl_price = entry_price + 1.0015
-          tp_price = entry_price - 0.997
+          sl_price = entry_price * 1.0015
+          tp_price = entry_price * 0.997
 
 
         for t2, r2 in after.iterrows():
+            # stop loss
+           if entry_signal =="BUY" and r2["low"]<sl_price:
+             exit_time = t2
+             exit_reason = "SL"
+             exit_price = sl_price
+             position = 0
+             pnl=exit_price-entry_price
+             break
+           if entry_signal =="SELL" and r2["high"]>sl_price:
+              exit_time = t2
+              exit_reason = "SL"
+              exit_price = sl_price
+              pnl=entry_price-exit_price
+              position = 0
+              break
 
            # TAKE PROFIT first
            if entry_signal == "BUY" and r2["close"] >= tp_price:
@@ -134,21 +149,7 @@ for day, rows in data.groupby(data["session_day"]):
              pnl=entry_price-exit_price
              break
 
-             # stop loss
-           if entry_signal =="BUY" and r2["low"]<sl_price:
-             exit_time = t2
-             exit_reason = "SL"
-             exit_price = sl_price
-             position = 0
-             pnl=exit_price-entry_price
-             break
-           if entry_signal =="SELL" and r2["low"]>sl_price:
-              exit_time = t2
-              exit_reason = "SL"
-              exit_price = sl_price
-              pnl=entry_price-exit_price
-              position = 0
-              break
+           
 
 
 
@@ -189,8 +190,8 @@ fig.add_trace(go.Candlestick(
     name="Candles"
 ))
 
-fig.add_trace(go.Scatter(x=data.index, y=data["ORH"], mode="lines", name="ORH"))
-fig.add_trace(go.Scatter(x=data.index, y=data["ORL"], mode="lines", name="ORL"))
+fig.add_trace(go.Scatter(x=data.index, y=data["ORH"], mode="lines", name="ORH",line=dict(color="green")))
+fig.add_trace(go.Scatter(x=data.index, y=data["ORL"], mode="lines", name="ORL", line=dict(color="red")))
 
 # Plot buy/sell points
 bp = data[data["signal"] == "BUY"]
